@@ -1,5 +1,5 @@
+from __future__ import print_function
 import networkx as nx
-import sys
 
 def print_coauthor_metrics(g):
     ca1 = 0
@@ -28,11 +28,13 @@ def print_coauthor_metrics(g):
     print("% of authors with <= 40 coauthors =", ca40 * 100.0/num_nodes)
     print("% of authors with <= 80 coauthors =", ca80 * 100.0/num_nodes)
 
+# implementing using Directed graph
 g = nx.read_edgelist("./caGrQc.txt", delimiter='\t', create_using=nx.DiGraph(), nodetype=int)
 print("Without removing self loops")
 print_coauthor_metrics(g)
 
 # there are self loops in the graph
+# since these are considered as errors, we have to remove them
 # if we want the same metrics after removing self loops
 print("After removing self loops")
 g.remove_edges_from(g.selfloop_edges())

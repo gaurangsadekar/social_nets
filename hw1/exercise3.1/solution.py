@@ -1,6 +1,7 @@
 import networkx as nx
 import sys
 
+# implementing g as a directed graph
 g = nx.read_edgelist("./caGrQc.txt", delimiter='\t', create_using=nx.DiGraph(), nodetype=int)
 
 min_degree = sys.maxsize

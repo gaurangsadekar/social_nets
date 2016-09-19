@@ -29,6 +29,7 @@ def print_coauthor_metrics(g):
     print("% of authors with <= 80 coauthors =", ca80 * 100.0/num_nodes)
 
 g = nx.read_edgelist("./caGrQc.txt", delimiter='\t', create_using=nx.DiGraph(), nodetype=int)
+print("Without removing self loops")
 print_coauthor_metrics(g)
 
 # there are self loops in the graph

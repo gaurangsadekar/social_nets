@@ -29,13 +29,14 @@ class SocialGraph:
         print("Initializing check ins")
         if opt == "test":
             checkin_pickle_file = "checkins.p"
+
             if checkin_pickle_file in os.listdir("."):
                 print("Loading from Pickle File")
                 node_checkins = pickle.load(open(checkin_pickle_file, "r"))
             else:
                 # parse the csv file
                 node_checkins = {}
-                csv_reader = csv.reader(open("checkin_usersGPS_largcomp_training.csv", "r"))
+                csv_reader = csv.reader(open("checkin_usersGPS_largcomp_index.csv", "r"))
                 for check_in in csv_reader:
                     node = int(float(check_in[0]))
                     if node not in node_checkins:
@@ -48,6 +49,7 @@ class SocialGraph:
                                       for node, checkins in node_checkins.iteritems()])
                 # cache parsed data into a pickle file
                 pickle.dump(node_checkins, open(checkin_pickle_file, "w"))
+
         elif opt == "train":
             checkin_pickle_file = "checkins_train.p"
             if checkin_pickle_file in os.listdir("."):
@@ -87,5 +89,7 @@ class SocialGraph:
     def get_location(self, node):
         return self.node_checkins[node][-1][1]
 
-
+    # calculate coordinate distance
+    def get_dist(self, source, dest, dist_fn):
+        return dist_fn(self.get_location(source), self.get_location(dest))
 

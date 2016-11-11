@@ -87,17 +87,21 @@ def astar_distance_based(sg, source, dest, got_neighbors_for, opt, testcase_id=1
             print("Destination Reached")
             print("Number of Queries made:", num_queries)
             return (reconstructed_path(came_from, current), g[current], num_queries, got_neighbors_for)
+        
+        if current in closed_set:
+            continue
 
         closed_set.add(current)
 
         neighbors = None
         if opt == "train":
-            num_queries += 1
             neighbors = sg.get_neighbors(current)
+            num_queries += 1
         elif opt == "test":
             if current not in got_neighbors_for:
                 print("Getting neighbors for:", current)
                 neighbors = get_neighbors(current, testcase_id, opt)
+                num_queries += 1
                 got_neighbors_for.add(current)
             else:
                 neighbors = sg.get_neighbors(current)
@@ -106,6 +110,7 @@ def astar_distance_based(sg, source, dest, got_neighbors_for, opt, testcase_id=1
             if neighbor not in closed_set:
                 tentative_g = g[current] + sg.get_dist(current, neighbor, g_fn)
                 neighbor_h = sg.get_dist(neighbor, dest, h_fn)
+
                 if tentative_g < g[neighbor]:
                     g[neighbor] = tentative_g
                     f_score  = g[neighbor] + neighbor_h

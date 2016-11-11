@@ -67,7 +67,7 @@ making locally optimal decisions
 
     returns path, path length (no. of edges or geographic movement) and neighbors for whom API is queried for
 '''
-def astar_distance_based(sg, source, dest, got_neighbors_for, opt, testcase_id=1, g_fn=dists.manhattan, h_fn=dists.manhattan):
+def astar_distance_based(sg, source, dest, got_neighbors_for, opt, testcase_id=1, g_fn=dists.manhattan, h_fn=dists.manhattan, h_wt=1):
     closed_set = set()
     # used to reconstruct path after finding destination
     num_queries = 0
@@ -88,6 +88,9 @@ def astar_distance_based(sg, source, dest, got_neighbors_for, opt, testcase_id=1
             print("Number of Queries made:", num_queries)
             return (reconstructed_path(came_from, current), g[current], num_queries, got_neighbors_for)
 
+        if current in closed_set:
+            continue
+
         closed_set.add(current)
 
         neighbors = None
@@ -105,7 +108,7 @@ def astar_distance_based(sg, source, dest, got_neighbors_for, opt, testcase_id=1
         for neighbor in neighbors.iterkeys():
             if neighbor not in closed_set:
                 tentative_g = g[current] + sg.get_dist(current, neighbor, g_fn)
-                neighbor_h = sg.get_dist(neighbor, dest, h_fn)
+                neighbor_h = h_wt * sg.get_dist(neighbor, dest, h_fn)
                 if tentative_g < g[neighbor]:
                     g[neighbor] = tentative_g
                     f_score  = g[neighbor] + neighbor_h

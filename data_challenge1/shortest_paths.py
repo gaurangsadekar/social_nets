@@ -120,6 +120,107 @@ def astar_distance_based(sg, source, dest, got_neighbors_for, opt, testcase_id=1
                     fq.put((f_score, neighbor))
                     came_from[neighbor] = current
 
+# returns the path in reverse
+def reconstructed_path_rev(came_from, current):
+    path = [current]
+    while current in came_from:
+        current = came_from[current]
+        path.append(current)
+    return path
+
+def get_path(node, neighbor, came_from_source, came_from_dest):
+    # process path
+    source_path = [p for p in reversed(reconstructed_path_rev(came_from_source, node))]
+    dest_path = reconstructed_path_rev(came_from_dest, neighbor)
+    path = source_path + dest_path
+    return path
+    
+def expand_frontier(sg, node, start_frontier, target_frontier, 
+                    fq, g_source, g_dest, came_from_source, came_from_dest,
+                    closed_set, num_queries, 
+                    g_fn, h_fn, opt="train"):
+    
+    if node not in closed_set:
+        num_queries.append(1)
+
+    neighbors = sg.get_neighbors(node)
+    for neighbor in neighbors:
+        if neighbor in target_frontier:
+            # path found
+            #print("Path found at:", node, neighbor)
+            path = get_path(node, neighbor, came_from_source, came_from_dest)
+            path_length = g_source[node] + sg.get_dist(node, neighbor, g_fn) + g_dest[neighbor]
+            return (path, path_length)
+        else:
+            # compute h
+            neighbor_h = sys.maxsize
+            for tn in target_frontier:
+                curr_h = g_dest[tn] + sg.get_dist(neighbor, tn, h_fn)
+                neighbor_h = min(neighbor_h, curr_h)
+            
+            # for every neighbor, compute f
+            tentative_g = g_source[node] + sg.get_dist(node, neighbor, g_fn)
+            if neighbor not in g_source or tentative_g < g_source[neighbor]:
+                g_source[neighbor] = tentative_g
+                f_score = g_source[neighbor] + neighbor_h
+                came_from_source[neighbor] = node
+                fq.put((f_score, neighbor))
+    # add to start frontier
+    for neighbor in neighbors:
+        start_frontier.add(neighbor)
+    
+    return (None, None)
+
+def frontier_search(sg, source, dest, got_neighbors_for, testcase_id=1, g_fn=dists.unweighted, h_fn=dists.manhattan):
+    source_frontier = { source }
+    closed = set()
+    dest_frontier = { dest }
+    num_queries = 0
+    came_from_source = {}
+    came_from_dest = {}
+    
+    g_source = {}
+    g_dest = {}
+    for node in sg.node_checkins:
+        g_source[node] = sys.maxint
+        g_dest[node] = sys.maxint
+    g_source[source] = 0
+    g_dest[dest] = 0
+    
+    fq = Queue.PriorityQueue()
+    h_source_dest = sg.get_dist(source, dest, h_fn)
+    fq.put((h_source_dest, source))
+    fq.put((h_source_dest, dest))
+    num_queries = []
+    while not fq.empty():
+        min_f, current = fq.get()
+            
+        if current in source_frontier:
+            res = expand_frontier(sg, current, 
+                                  source_frontier, dest_frontier, fq,
+                                  g_source, g_dest, 
+                                  came_from_source, came_from_dest,
+                                  closed, num_queries,
+                                  g_fn, h_fn
+                                 )
+            
+        elif current in dest_frontier:
+            res = expand_frontier(sg, current, 
+                                  dest_frontier, source_frontier, fq,
+                                  g_dest, g_source,
+                                  came_from_dest, came_from_source,
+                                  closed, num_queries,
+                                  g_fn, h_fn
+                                 )
+        closed.add(current)
+            
+        if res != (None, None):
+            path, path_length = res
+            if dest == path[0] and source == path[-1]:
+                path.reverse()
+            return (path, path_length, sum(num_queries))    
+
+
 def reconstructed_path(came_from, current):
     path = [current]
     while current in came_from:
@@ -178,6 +279,7 @@ def submit_testcases(results):
     for t_id, v in results_list:
         shortest_path, path_length = v
         submit_path_for_testcase(t_id, shortest_path)
+
 
 
 if __name__ == "__main__":

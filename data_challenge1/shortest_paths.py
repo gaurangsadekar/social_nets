@@ -87,7 +87,7 @@ def astar_distance_based(sg, source, dest, got_neighbors_for, opt, testcase_id=1
             print("Destination Reached")
             print("Number of Queries made:", num_queries)
             return (reconstructed_path(came_from, current), g[current], num_queries, got_neighbors_for)
-        
+
         if current in closed_set:
             continue
 

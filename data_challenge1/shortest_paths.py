@@ -134,12 +134,12 @@ def get_path(node, neighbor, came_from_source, came_from_dest):
     dest_path = reconstructed_path_rev(came_from_dest, neighbor)
     path = source_path + dest_path
     return path
-    
+
 def expand_frontier(sg, node, start_frontier, target_frontier, 
                     fq, g_source, g_dest, came_from_source, came_from_dest,
                     closed_set, num_queries, 
                     g_fn, h_fn, opt="train"):
-    
+
     if node not in closed_set:
         num_queries.append(1)
 
@@ -157,7 +157,7 @@ def expand_frontier(sg, node, start_frontier, target_frontier,
             for tn in target_frontier:
                 curr_h = g_dest[tn] + sg.get_dist(neighbor, tn, h_fn)
                 neighbor_h = min(neighbor_h, curr_h)
-            
+
             # for every neighbor, compute f
             tentative_g = g_source[node] + sg.get_dist(node, neighbor, g_fn)
             if neighbor not in g_source or tentative_g < g_source[neighbor]:
@@ -168,7 +168,7 @@ def expand_frontier(sg, node, start_frontier, target_frontier,
     # add to start frontier
     for neighbor in neighbors:
         start_frontier.add(neighbor)
-    
+
     return (None, None)
 
 def frontier_search(sg, source, dest, got_neighbors_for, testcase_id=1, g_fn=dists.unweighted, h_fn=dists.manhattan):
@@ -178,7 +178,7 @@ def frontier_search(sg, source, dest, got_neighbors_for, testcase_id=1, g_fn=dis
     num_queries = 0
     came_from_source = {}
     came_from_dest = {}
-    
+
     g_source = {}
     g_dest = {}
     for node in sg.node_checkins:
@@ -186,7 +186,7 @@ def frontier_search(sg, source, dest, got_neighbors_for, testcase_id=1, g_fn=dis
         g_dest[node] = sys.maxint
     g_source[source] = 0
     g_dest[dest] = 0
-    
+
     fq = Queue.PriorityQueue()
     h_source_dest = sg.get_dist(source, dest, h_fn)
     fq.put((h_source_dest, source))
@@ -194,18 +194,18 @@ def frontier_search(sg, source, dest, got_neighbors_for, testcase_id=1, g_fn=dis
     num_queries = []
     while not fq.empty():
         min_f, current = fq.get()
-            
+
         if current in source_frontier:
-            res = expand_frontier(sg, current, 
+            res = expand_frontier(sg, current,
                                   source_frontier, dest_frontier, fq,
-                                  g_source, g_dest, 
+                                  g_source, g_dest,
                                   came_from_source, came_from_dest,
                                   closed, num_queries,
                                   g_fn, h_fn
                                  )
-            
+
         elif current in dest_frontier:
-            res = expand_frontier(sg, current, 
+            res = expand_frontier(sg, current,
                                   dest_frontier, source_frontier, fq,
                                   g_dest, g_source,
                                   came_from_dest, came_from_source,
@@ -213,12 +213,12 @@ def frontier_search(sg, source, dest, got_neighbors_for, testcase_id=1, g_fn=dis
                                   g_fn, h_fn
                                  )
         closed.add(current)
-            
+
         if res != (None, None):
             path, path_length = res
             if dest == path[0] and source == path[-1]:
                 path.reverse()
-            return (path, path_length, sum(num_queries))    
+            return (path, path_length, sum(num_queries))
 
 
 def reconstructed_path(came_from, current):

@@ -53,7 +53,7 @@ class GplusGraph:
         elif genders == [False, True, False]:
             gender = "F"
         elif genders == [False, False, True]:
-            gender = "T"
+            gender = "O"
         else:
             gender = "O"
         self.g.node[node]["gender"] = gender

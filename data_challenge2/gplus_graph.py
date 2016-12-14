@@ -13,7 +13,7 @@ class GplusGraph:
             gplus_files = sorted(os.listdir(path))
             # split into files by type
             gplus_node_files = [gplus_files[i : i + 6] for i in range(0, len(gplus_files), 6)]
-            sample_idxs = random.sample(range(0, len(gplus_node_files)), 12)
+            sample_idxs = random.sample(range(0, len(gplus_node_files)), 24)
             sample = [gplus_node_files[i] for i in sample_idxs]
 
             self.g = nx.DiGraph()
@@ -45,7 +45,8 @@ class GplusGraph:
             self.add_node_props(node, feats.split())
 
     def add_node_props(self, node, feats):
-        genders = [bool(int(f)) for f in feats[:3]]
+        feats = [bool(int(f)) for f in feats]
+        genders = feats[:3]
         gender = None
         if genders == [True, False, False]:
             gender = "M"
@@ -56,6 +57,10 @@ class GplusGraph:
         else:
             gender = "O"
         self.g.node[node]["gender"] = gender
+        # if org is any variation of Google or the name Android
+        goog_list = feats[38:44] + feats[12:13]
+        is_googler = reduce(lambda x, y: x or y, goog_list, False)
+        self.g.node[node]["googler"] = is_googler
 
     def add_feat(self, node, feat):
         with open(feat, "r") as featfile:
@@ -83,7 +88,7 @@ class GplusGraph:
 
     def add_ego_edges(self, edges_file_path):
         temp = nx.read_edgelist(edges_file_path, create_using=nx.DiGraph())
-        self.g.add_edges_from(temp.edges())
+        self.g.add_edges_from([(long(v1), long(v2)) for v1, v2 in temp.edges()])
 
     def add_followers(self, node, followers_file):
         with open(followers_file, "r") as ff:
@@ -94,5 +99,5 @@ if __name__ == "__main__":
     #pickle_file = "gplus_pickle.p"
     g = GplusGraph(None)
     sample_pickle_file = "gplus_pickle_sample.p"
-    #print("Writing pickle file")
+    print("Writing pickle file")
     pickle.dump(g, open(sample_pickle_file, "w"))

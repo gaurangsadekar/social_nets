@@ -3,6 +3,7 @@ import os
 import sys
 import networkx as nx
 import pickle
+import random
 
 class GplusGraph:
 
@@ -12,9 +13,11 @@ class GplusGraph:
             gplus_files = sorted(os.listdir(path))
             # split into files by type
             gplus_node_files = [gplus_files[i : i + 6] for i in range(0, len(gplus_files), 6)]
+            sample_idxs = random.sample(range(0, len(gplus_node_files)), 12)
+            sample = [gplus_node_files[i] for i in sample_idxs]
 
             self.g = nx.DiGraph()
-            for egonet in gplus_node_files:
+            for egonet in sample:
                 node = long(egonet[0].split(".")[0])
                 egonet = map(lambda fname: path + fname, egonet)
                 print("Processing for node:", node)
@@ -88,7 +91,8 @@ class GplusGraph:
             map(lambda f: self.g.add_edge(f, node), followers)
 
 if __name__ == "__main__":
-    pickle_file = "gplus_pickle.p"
-    g = GplusGraph(pickle_file)
+    #pickle_file = "gplus_pickle.p"
+    g = GplusGraph(None)
+    sample_pickle_file = "gplus_pickle_sample.p"
     #print("Writing pickle file")
-    #pickle.dump(g, open(, "w"))
+    pickle.dump(g, open(sample_pickle_file, "w"))
